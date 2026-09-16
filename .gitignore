@@ -1,0 +1,27 @@
+node_modules/
+.next/
+dist/
+build/
+.turbo/
+
+# Environment files — NEVER COMMIT THESE
+.env
+.env.local
+.env.production
+.env*.local
+
+# SQLite database
+*.db
+*.sqlite
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Build artifacts
+*.tsbuildinfo

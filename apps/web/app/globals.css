@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #0d0d0f;
+  color: #e8e8ed;
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a3a42;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+}
+
+/* ─── Selection ───────────────────────────────────────────────── */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* ─── Prose (Markdown rendering) ─────────────────────────────── */
+.nova-prose {
+  line-height: 1.7;
+  color: #e8e8ed;
+}
+.nova-prose h1,
+.nova-prose h2,
+.nova-prose h3,
+.nova-prose h4 {
+  font-weight: 600;
+  margin: 1.2em 0 0.5em;
+  color: #ffffff;
+}
+.nova-prose h1 { font-size: 1.5rem; }
+.nova-prose h2 { font-size: 1.25rem; }
+.nova-prose h3 { font-size: 1.1rem; }
+
+.nova-prose p {
+  margin: 0.6em 0;
+}
+.nova-prose p:first-child {
+  margin-top: 0;
+}
+.nova-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.nova-prose strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.nova-prose em {
+  color: #a5b4fc;
+}
+
+.nova-prose ul,
+.nova-prose ol {
+  padding-left: 1.5rem;
+  margin: 0.6em 0;
+}
+.nova-prose li {
+  margin: 0.25em 0;
+}
+.nova-prose li::marker {
+  color: #6366f1;
+}
+
+.nova-prose a {
+  color: #818cf8;
+  text-decoration: underline;
+  text-decoration-color: rgba(129, 140, 248, 0.4);
+}
+.nova-prose a:hover {
+  color: #a5b4fc;
+}
+
+.nova-prose hr {
+  border: none;
+  border-top: 1px solid #2e2e34;
+  margin: 1.5em 0;
+}
+
+.nova-prose blockquote {
+  border-left: 3px solid #6366f1;
+  padding-left: 1rem;
+  color: #a1a1aa;
+  margin: 0.8em 0;
+  font-style: italic;
+}
+
+.nova-prose code {
+  background: #1c1c20;
+  color: #a5b4fc;
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875em;
+  border: 1px solid #2e2e34;
+}
+
+.nova-prose pre {
+  margin: 0.8em 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #2e2e34;
+}
+.nova-prose pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+.nova-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+  font-size: 0.9em;
+}
+.nova-prose th {
+  background: #1c1c20;
+  color: #a5b4fc;
+  padding: 0.5em 0.75em;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid #3a3a42;
+}
+.nova-prose td {
+  padding: 0.5em 0.75em;
+  border-bottom: 1px solid #242428;
+}
+.nova-prose tr:last-child td {
+  border-bottom: none;
+}
+.nova-prose tr:hover td {
+  background: #141416;
+}
+
+/* ─── Code block header ───────────────────────────────────────── */
+.code-block-wrapper {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #2e2e34;
+}
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: #1c1c20;
+  border-bottom: 1px solid #2e2e34;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+.code-copy-btn {
+  cursor: pointer;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  background: transparent;
+  border: 1px solid #3a3a42;
+  color: #9ca3af;
+  font-size: 0.7rem;
+  transition: all 0.15s;
+}
+.code-copy-btn:hover {
+  background: #6366f1;
+  color: white;
+  border-color: #6366f1;
+}
+
+/* ─── Typing cursor ───────────────────────────────────────────── */
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: #6366f1;
+  border-radius: 1px;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ─── Glassmorphism panels ────────────────────────────────────── */
+.glass {
+  background: rgba(20, 20, 22, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ─── Gradient text ───────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glow effects ────────────────────────────────────────────── */
+.glow-indigo {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+.glow-indigo:focus-within {
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.2);
+}

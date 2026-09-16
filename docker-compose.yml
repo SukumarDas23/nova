@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  # ─── Express Backend ─────────────────────────────────────────────────────────
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    restart: unless-stopped
+    env_file:
+      - ./server/.env
+    volumes:
+      - nova_data:/app/server/data
+    ports:
+      - "3001:3001"
+    networks:
+      - nova-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── Next.js Web App ─────────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_URL=http://server:3001
+    depends_on:
+      - server
+    networks:
+      - nova-net
+
+  # ─── Nginx Reverse Proxy ─────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_www:/var/www/certbot:ro
+      - certbot_conf:/etc/letsencrypt:ro
+    depends_on:
+      - web
+      - server
+    networks:
+      - nova-net
+
+volumes:
+  nova_data:        # SQLite database persistence
+  certbot_www:      # Let's Encrypt challenge files
+  certbot_conf:     # SSL certificates
+
+networks:
+  nova-net:
+    driver: bridge
