@@ -5,7 +5,7 @@ import { getDb, persistDb } from '../db/sqlite';
 
 export const chatRouter = Router();
 
-// Lazy client — created on first request so dotenv has already run
+// ─── Lazy NVIDIA client (created on first request, after dotenv runs) ─────────
 let _nvidia: OpenAI | null = null;
 function getNvidiaClient(): OpenAI {
   if (!_nvidia) {
@@ -16,12 +16,11 @@ function getNvidiaClient(): OpenAI {
   }
   return _nvidia;
 }
-
 function getModel(): string {
   return process.env.NVIDIA_MODEL || 'z-ai/glm-5.3-flash';
 }
 
-// ─── Helper: run a query and return rows as objects ───────────────────────────
+// ─── Helper: run query, return rows as plain objects ──────────────────────────
 function queryAll(sql: string, params: any[] = []): Record<string, any>[] {
   const db = getDb();
   const results = db.exec(sql, params);
@@ -31,27 +30,27 @@ function queryAll(sql: string, params: any[] = []): Record<string, any>[] {
     Object.fromEntries(columns.map((col, i) => [col, row[i]]))
   );
 }
-
 function queryGet(sql: string, params: any[] = []): Record<string, any> | undefined {
   return queryAll(sql, params)[0];
 }
 
 // ─── POST /api/chat/stream ────────────────────────────────────────────────────
+// SSE streaming endpoint — accepts model/temperature/maxTokens overrides
 chatRouter.post('/stream', async (req: Request, res: Response) => {
-  const { messages, conversationId } = req.body as {
+  const { messages, conversationId, model, temperature, maxTokens } = req.body as {
     messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
     conversationId?: string;
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
   };
 
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     res.status(400).json({ error: 'messages array is required' });
     return;
   }
-
   if (!process.env.NVIDIA_API_KEY || process.env.NVIDIA_API_KEY === 'your_nvidia_api_key_here') {
-    res.status(503).json({
-      error: 'NVIDIA API key not configured. Please set NVIDIA_API_KEY in server/.env'
-    });
+    res.status(503).json({ error: 'NVIDIA API key not configured. Set NVIDIA_API_KEY in server/.env' });
     return;
   }
 
@@ -61,6 +60,9 @@ chatRouter.post('/stream', async (req: Request, res: Response) => {
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
 
+  const activeModel = model || getModel();
+  const activeTemp  = temperature ?? 0.6;
+  const activeMax   = maxTokens ?? 4096;
   const convId = conversationId || uuidv4();
   const db = getDb();
 
@@ -73,7 +75,7 @@ chatRouter.post('/stream', async (req: Request, res: Response) => {
 
   // Save user message
   const userMsg = messages[messages.length - 1];
-  if (userMsg.role === 'user') {
+  if (userMsg?.role === 'user') {
     db.run(
       'INSERT INTO messages (id, conversation_id, role, content) VALUES (?, ?, ?, ?)',
       [uuidv4(), convId, 'user', userMsg.content]
@@ -86,17 +88,14 @@ chatRouter.post('/stream', async (req: Request, res: Response) => {
 
   try {
     const stream = await getNvidiaClient().chat.completions.create({
-      model: getModel(),
+      model: activeModel,
       messages: [
-        {
-          role: 'system',
-          content: "You are NOVA, a highly intelligent AI assistant powered by NVIDIA's advanced AI. Be helpful, thorough, and precise."
-        },
+        { role: 'system', content: "You are NOVA, a highly intelligent AI assistant powered by NVIDIA's advanced AI. Be helpful, thorough, and precise." },
         ...messages
       ],
       stream: true,
-      temperature: 0.6,
-      max_tokens: 4096,
+      temperature: activeTemp,
+      max_tokens: activeMax,
     });
 
     res.write(`data: ${JSON.stringify({ type: 'init', conversationId: convId })}\n\n`);
@@ -105,41 +104,35 @@ chatRouter.post('/stream', async (req: Request, res: Response) => {
       const delta = chunk.choices[0]?.delta;
 
       if ((delta as any)?.reasoning_content) {
-        const reasoning = (delta as any).reasoning_content;
-        fullReasoning += reasoning;
-        res.write(`data: ${JSON.stringify({ type: 'reasoning', content: reasoning })}\n\n`);
+        const r = (delta as any).reasoning_content;
+        fullReasoning += r;
+        res.write(`data: ${JSON.stringify({ type: 'reasoning', content: r })}\n\n`);
       }
-
       if (delta?.content) {
         fullContent += delta.content;
         res.write(`data: ${JSON.stringify({ type: 'content', content: delta.content })}\n\n`);
       }
-
       if (chunk.choices[0]?.finish_reason) {
         res.write(`data: ${JSON.stringify({ type: 'done', finish_reason: chunk.choices[0].finish_reason })}\n\n`);
       }
     }
 
-    // Save assistant response
     db.run(
       'INSERT INTO messages (id, conversation_id, role, content, reasoning) VALUES (?, ?, ?, ?, ?)',
       [uuidv4(), convId, 'assistant', fullContent, fullReasoning || null]
     );
-    db.run(
-      "UPDATE conversations SET updated_at = strftime('%s','now') WHERE id = ?",
-      [convId]
-    );
+    db.run("UPDATE conversations SET updated_at = strftime('%s','now') WHERE id = ?", [convId]);
     persistDb();
     res.end();
 
   } catch (error: any) {
-    console.error('NVIDIA API error:', error);
+    console.error('NVIDIA API error:', error?.message);
     res.write(`data: ${JSON.stringify({ type: 'error', error: error?.message || 'Unknown error' })}\n\n`);
     res.end();
   }
 });
 
-// ─── POST /api/chat/simple ─── (non-streaming, for quick tests) ───────────────
+// ─── POST /api/chat/simple ──── non-streaming (for testing) ──────────────────
 chatRouter.post('/simple', async (req: Request, res: Response) => {
   const { message } = req.body as { message: string };
   if (!message) { res.status(400).json({ error: 'message is required' }); return; }
@@ -163,4 +156,17 @@ chatRouter.post('/simple', async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// ─── GET /api/chat/models ─────────────────────────────────────────────────────
+chatRouter.get('/models', (_req: Request, res: Response) => {
+  res.json({
+    current: getModel(),
+    available: [
+      { id: 'z-ai/glm-5.3-flash', label: 'GLM-5.3 Flash', description: 'Fast responses, great for most tasks' },
+      { id: 'z-ai/glm-5.3',       label: 'GLM-5.3',       description: 'Deep reasoning, more thorough' },
+      { id: 'nvidia/llama-3.1-nemotron-ultra-253b-v1', label: 'Nemotron Ultra 253B', description: 'NVIDIA flagship model' },
+      { id: 'deepseek-ai/deepseek-v4-flash-0731', label: 'DeepSeek V4 Flash', description: 'Fast DeepSeek model' },
+    ]
+  });
 });
