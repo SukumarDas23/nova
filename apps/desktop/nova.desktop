@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=NOVA
+Comment=NOVA — AI Assistant powered by NVIDIA
+Exec=/opt/nova-desktop/nova-desktop --no-sandbox --disable-gpu --in-process-gpu %U
+Icon=nova
+Terminal=false
+Type=Application
+Categories=Utility;Network;
+StartupNotify=true
+StartupWMClass=nova
+Keywords=AI;Assistant;NVIDIA;Chat;

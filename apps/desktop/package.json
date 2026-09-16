@@ -40,7 +40,18 @@
       ],
       "category": "Utility",
       "icon": "assets/icon.png",
-      "maintainer": "NOVA <nova@assistant.ai>"
+      "maintainer": "NOVA <nova@assistant.ai>",
+      "desktop": {
+        "Name": "NOVA",
+        "Comment": "NOVA — AI Assistant powered by NVIDIA",
+        "Keywords": "AI;Assistant;NVIDIA;Chat;"
+      },
+      "executableArgs": [
+        "--no-sandbox",
+        "--disable-gpu",
+        "--in-process-gpu",
+        "--disable-dev-shm-usage"
+      ]
     },
     "win": {
       "target": [
