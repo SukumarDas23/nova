@@ -1,50 +1,61 @@
 # NOVA — Task Checklist
-> **Phase 0: COMPLETE ✅**
 > Updated: 2026-09-17
 
-## Phase 0 — ✅ DONE
-
-- [x] Plan approved & PLAN.md in project root
+## ✅ Phase 0 — Foundation DONE
 - [x] Monorepo scaffold (pnpm + turbo)
-- [x] Server: Express + TypeScript + dotenv
-- [x] Server: NVIDIA API proxy route (streaming SSE + simple)
-- [x] Server: sql.js WASM SQLite (no native compile issues ever)
-- [x] Server: Lazy client init (fixes env timing on tsx restart)
-- [x] Web: Next.js 14 + Tailwind dark theme
-- [x] Web: Full chat UI (Sidebar, MessageBubble, Markdown, Syntax highlight)
-- [x] Web: SSE streaming connected to backend
-- [x] API key set: z-ai/glm-5.3-flash working ✅
-- [x] Git: 3 commits, all working code
+- [x] Express + TypeScript server
+- [x] NVIDIA API proxy (SSE streaming)
+- [x] sql.js WASM SQLite (no ABI issues ever)
+- [x] Next.js 14 web app
+- [x] API key configured: z-ai/glm-5.3-flash
 
-## ✅ MILESTONE ACHIEVED
-→ Full API pipeline working: Express → NVIDIA → GLM-5.3-flash → streaming response
+## ✅ Phase 1 — Full Chat Web App DONE
+- [x] Model selector (GLM-5.3-flash / GLM-5.3 / Nemotron / DeepSeek)
+- [x] Dark / Light mode toggle (persists to localStorage)
+- [x] Settings panel (temperature 0–1, max tokens 512–8192)
+- [x] Regenerate last response button
+- [x] Copy message + copy code buttons
+- [x] Collapsible reasoning steps panel
+- [x] Sidebar search + time-grouped conversations
+- [x] Two-click safe delete for conversations
+- [x] Beautiful empty state with suggestion chips
+- [x] Scroll-to-bottom button
+- [x] Character counter + over-limit warning
+- [x] Auto-resize textarea
+- [x] Rich markdown (tables, code blocks, bold, links)
+- [x] Theme-aware syntax highlighting (dark/light)
+- [x] Streaming SSE with proper buffer handling
 
-## 🔴 Next: PHASE 1 — Full Chat Web App
-Start after user confirms browser UI works.
+## 🔴 Phase 2 — Live on Oracle Cloud (NEXT)
+- [ ] Set up Oracle Free Tier VM (user to provide SSH/IP)
+- [ ] Nginx reverse proxy config
+- [ ] PM2 process manager for server
+- [ ] Domain / HTTPS via Let's Encrypt
+- [ ] Docker-compose for easy redeploy
+- [ ] Environment secrets management
+- [ ] Health monitoring endpoint
 
-### Phase 1 Features to Build:
-- [ ] Sidebar: multiple conversations + history
-- [ ] Streaming tokens display in real-time
-- [ ] Markdown rendering (code blocks, tables, bold)
-- [ ] Show/hide reasoning steps
-- [ ] Copy message button
-- [ ] Dark/light mode toggle
-- [ ] Mobile responsive layout
-- [ ] Model selector (glm-5.3 vs glm-5.3-flash)
+## Phase 3 — Desktop App (Electron) — FUTURE
+- [ ] Electron wrapper around web app
+- [ ] System tray icon
+- [ ] Native notifications
+- [ ] Windows + Linux builds
 
-## ⏳ WAITING ON: NVIDIA API Key
-→ Once user provides key, insert it into `server/.env` as `NVIDIA_API_KEY=nvapi-...`
-→ Then test: http://localhost:3000 → type message → streaming AI response
+## Phase 4 — Android App (Capacitor) — FUTURE
+- [ ] Capacitor wrapper
+- [ ] Android APK build
+- [ ] Mobile-optimized UI
 
-## MILESTONE: Phase 0 DONE when
-→ http://localhost:3000 shows streaming AI response ← ONE STEP AWAY
+---
 
-## All Tests Passing RIGHT NOW:
-- ✅ http://localhost:3001/api/health → {"status":"ok"}
-- ✅ http://localhost:3001/api/history/conversations → []
-- ✅ http://localhost:3001/api/chat/simple → {"error":"API key not configured"} (expected)
-- ✅ http://localhost:3000 → Full HTML with dark mode chat UI
+## 🚀 Restart Instructions (every session)
+```bash
+# Terminal 1 — Backend
+cd /home/su10/Projects/su/nova/server
+/home/su10/.local/share/pnpm/bin/pnpm dev
 
-## Servers Running:
-- Backend: http://localhost:3001 (Express + sql.js)
-- Frontend: http://localhost:3000 (Next.js 14)
+# Terminal 2 — Frontend
+cd /home/su10/Projects/su/nova/apps/web
+/home/su10/.local/share/pnpm/bin/pnpm dev
+```
+Then open http://localhost:3000
