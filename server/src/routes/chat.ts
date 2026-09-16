@@ -5,13 +5,21 @@ import { getDb, persistDb } from '../db/sqlite';
 
 export const chatRouter = Router();
 
-// Initialize NVIDIA API client (OpenAI-compatible)
-const nvidia = new OpenAI({
-  apiKey: process.env.NVIDIA_API_KEY || '',
-  baseURL: process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
-});
+// Lazy client — created on first request so dotenv has already run
+let _nvidia: OpenAI | null = null;
+function getNvidiaClient(): OpenAI {
+  if (!_nvidia) {
+    _nvidia = new OpenAI({
+      apiKey: process.env.NVIDIA_API_KEY || '',
+      baseURL: process.env.NVIDIA_BASE_URL || 'https://integrate.api.nvidia.com/v1',
+    });
+  }
+  return _nvidia;
+}
 
-const MODEL = process.env.NVIDIA_MODEL || 'nvidia/llama-3_3-nemotron-super-49b-v1';
+function getModel(): string {
+  return process.env.NVIDIA_MODEL || 'z-ai/glm-5.3-flash';
+}
 
 // ─── Helper: run a query and return rows as objects ───────────────────────────
 function queryAll(sql: string, params: any[] = []): Record<string, any>[] {
@@ -77,8 +85,8 @@ chatRouter.post('/stream', async (req: Request, res: Response) => {
   let fullReasoning = '';
 
   try {
-    const stream = await nvidia.chat.completions.create({
-      model: MODEL,
+    const stream = await getNvidiaClient().chat.completions.create({
+      model: getModel(),
       messages: [
         {
           role: 'system',
@@ -139,13 +147,16 @@ chatRouter.post('/simple', async (req: Request, res: Response) => {
     res.status(503).json({ error: 'NVIDIA API key not configured' }); return;
   }
   try {
-    const completion = await nvidia.chat.completions.create({
-      model: MODEL,
+    const completion = await getNvidiaClient().chat.completions.create({
+      model: getModel(),
       messages: [{ role: 'user', content: message }],
       stream: false,
+      max_tokens: 4096,
     });
+    const msg = completion.choices[0]?.message as any;
     res.json({
-      content: completion.choices[0]?.message?.content,
+      content: msg?.content || msg?.reasoning_content || '(no response)',
+      reasoning: msg?.reasoning_content,
       model: completion.model,
       usage: completion.usage,
     });
