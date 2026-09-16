@@ -12,8 +12,8 @@
 
 ## STATUS TRACKER
 - [x] Plan Created & Approved
-- [ ] Phase 0 — Foundation & Setup  ← CURRENT
-- [ ] Phase 1 — Full Chat Web App
+- [x] Phase 0 — Foundation & Setup ✅ DONE (2026-09-17)
+- [ ] Phase 1 — Full Chat Web App  ← CURRENT
 - [ ] Phase 2 — Live on Oracle Cloud
 - [ ] Phase 3 — Desktop App (Electron)
 - [ ] Phase 4 — Android App (Capacitor)
