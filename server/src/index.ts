@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { chatRouter } from './routes/chat';
 import { historyRouter } from './routes/history';
-import { initDb } from './db/sqlite';
+import { initDb, persistDb } from './db/sqlite';
 
 dotenv.config();
 
@@ -33,8 +33,15 @@ app.get('/api/health', (_req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 async function start() {
-  // Initialize SQLite database
-  initDb();
+  // Initialize SQLite (WASM-based, no native compilation needed)
+  await initDb();
+
+  // Persist DB to disk every 30 seconds as a safety net
+  setInterval(() => persistDb(), 30_000);
+
+  // Persist DB on graceful shutdown
+  process.on('SIGTERM', () => { persistDb(); process.exit(0); });
+  process.on('SIGINT',  () => { persistDb(); process.exit(0); });
 
   app.listen(PORT, () => {
     console.log(`
