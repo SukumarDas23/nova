@@ -16,7 +16,7 @@
 - [x] Phase 1 — Full Chat Web App ✅ DONE (2026-09-17)
 - [x] Phase 2 — Live on Oracle Cloud ✅ DONE (2026-09-17) → http://129.159.239.56
 - [x] Phase 3 — Desktop App (Electron) ✅ DONE (2026-09-17) → NOVA-1.0.0.AppImage
-- [ ] Phase 4 — Android App (Capacitor) ← NEXT
+- [x] Phase 4 — Android App (Capacitor) ✅ DONE (2026-09-17) → app-debug.apk (3.6MB)
 
 ---
 
@@ -134,9 +134,11 @@ DONE WHEN: http://localhost:3000 shows streaming AI response
 - Global hotkey
 - Windows/Linux builds
 
-### PHASE 4 — Android (after Phase 3)
-- Capacitor wrapper
-- Android APK
+### PHASE 4 — Android (after Phase 3) ✅ DONE
+- Capacitor 6 wrapper (apps/mobile/)
+- capacitor.config.ts → server.url = http://129.159.239.56 (Oracle Cloud)
+- AndroidManifest: usesCleartextTraffic=true
+- app-debug.apk (3.6MB) built with Gradle 8.2.1 + Android 34
 
 ---
 

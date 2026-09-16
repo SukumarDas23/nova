@@ -46,10 +46,23 @@
 - [x] App loads http://129.159.239.56 (Oracle Cloud)
 - [x] System tray, minimize-to-tray, native notifications
 
-## Phase 4 — Android App (Capacitor) — FUTURE
-- [ ] Capacitor wrapper
-- [ ] Android APK build
-- [ ] Mobile-optimized UI
+## ✅ Phase 4 — Android App (Capacitor) DONE (2026-09-17)
+- [x] Java JDK 17 installed (openjdk 17.0.20)
+- [x] Android SDK: platform-tools 37.0.1, android-34, build-tools 34.0.0
+- [x] ANDROID_HOME=~/android set in ~/.bashrc
+- [x] apps/mobile/ Capacitor 6 project scaffolded
+- [x] capacitor.config.ts → server.url = http://129.159.239.56 (Oracle Cloud)
+- [x] AndroidManifest.xml: usesCleartextTraffic="true" (allow HTTP)
+- [x] cap add android + cap sync
+- [x] ./gradlew assembleDebug → BUILD SUCCESSFUL in 1m 48s
+- [x] app-debug.apk (3.6MB) at apps/mobile/android/app/build/outputs/apk/debug/
+
+## 🏁 ALL PHASES COMPLETE!
+- Phase 0 ✅ Foundation
+- Phase 1 ✅ Full Chat Web App
+- Phase 2 ✅ Oracle Cloud Deploy
+- Phase 3 ✅ Desktop (Electron) AppImage
+- Phase 4 ✅ Android APK (Capacitor)
 
 ---
 
