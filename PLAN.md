@@ -15,8 +15,8 @@
 - [x] Phase 0 — Foundation & Setup ✅ DONE (2026-09-17)
 - [x] Phase 1 — Full Chat Web App ✅ DONE (2026-09-17)
 - [x] Phase 2 — Live on Oracle Cloud ✅ DONE (2026-09-17) → http://129.159.239.56
-- [ ] Phase 3 — Desktop App (Electron) ← NEXT
-- [ ] Phase 4 — Android App (Capacitor)
+- [x] Phase 3 — Desktop App (Electron) ✅ DONE (2026-09-17) → NOVA-1.0.0.AppImage
+- [ ] Phase 4 — Android App (Capacitor) ← NEXT
 
 ---
 

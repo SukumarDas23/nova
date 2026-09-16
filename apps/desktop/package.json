@@ -1,9 +1,13 @@
 {
   "name": "nova-desktop",
   "version": "1.0.0",
-  "description": "NOVA — AI Assistant Desktop App",
+  "description": "NOVA — AI Assistant powered by NVIDIA",
   "main": "main.js",
-  "author": "NOVA",
+  "homepage": "http://129.159.239.56",
+  "author": {
+    "name": "NOVA",
+    "email": "nova@assistant.ai"
+  },
   "private": true,
   "scripts": {
     "dev": "electron .",
@@ -35,7 +39,8 @@
         "deb"
       ],
       "category": "Utility",
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.png",
+      "maintainer": "NOVA <nova@assistant.ai>"
     },
     "win": {
       "target": [

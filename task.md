@@ -35,16 +35,16 @@
 - [ ] Environment secrets management
 - [ ] Health monitoring endpoint
 
-## 🔄 Phase 3 — Desktop App (Electron) IN PROGRESS
+## ✅ Phase 3 — Desktop App (Electron) DONE
 - [x] NOVA icon generated (glowing N logo)
 - [x] apps/desktop/ scaffold created
 - [x] main.js: window, tray, menu, IPC, single-instance lock
 - [x] preload.js: contextBridge API
-- [x] electron-builder: Linux (AppImage/deb) + Windows (NSIS)
-- [/] Installing Electron (npm install running...)
-- [ ] Launch and test desktop app
-- [ ] Build AppImage for Linux
-- [ ] Build .exe installer for Windows
+- [x] electron-builder: Linux AppImage + .deb built
+- [x] NOVA-1.0.0.AppImage (104MB) — runs on any Linux
+- [x] nova-desktop_1.0.0_amd64.deb (72MB) — installable .deb
+- [x] App loads http://129.159.239.56 (Oracle Cloud)
+- [x] System tray, minimize-to-tray, native notifications
 
 ## Phase 4 — Android App (Capacitor) — FUTURE
 - [ ] Capacitor wrapper
