@@ -35,11 +35,16 @@
 - [ ] Environment secrets management
 - [ ] Health monitoring endpoint
 
-## Phase 3 — Desktop App (Electron) — FUTURE
-- [ ] Electron wrapper around web app
-- [ ] System tray icon
-- [ ] Native notifications
-- [ ] Windows + Linux builds
+## 🔄 Phase 3 — Desktop App (Electron) IN PROGRESS
+- [x] NOVA icon generated (glowing N logo)
+- [x] apps/desktop/ scaffold created
+- [x] main.js: window, tray, menu, IPC, single-instance lock
+- [x] preload.js: contextBridge API
+- [x] electron-builder: Linux (AppImage/deb) + Windows (NSIS)
+- [/] Installing Electron (npm install running...)
+- [ ] Launch and test desktop app
+- [ ] Build AppImage for Linux
+- [ ] Build .exe installer for Windows
 
 ## Phase 4 — Android App (Capacitor) — FUTURE
 - [ ] Capacitor wrapper
