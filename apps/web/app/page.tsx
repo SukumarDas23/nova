@@ -41,7 +41,9 @@ export default function HomePage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId]   = useState<string | null>(null);
   const [isStreaming, setIsStreaming]      = useState(false);
-  const [sidebarOpen, setSidebarOpen]     = useState(true);
+  const [sidebarOpen, setSidebarOpen]     = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  );
   const [settings, setSettings]           = useState<Settings>(DEFAULT_SETTINGS);
   const [settingsOpen, setSettingsOpen]   = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -237,6 +239,7 @@ export default function HomePage() {
         onSelect={loadConversation}
         onNew={newChat}
         onDelete={deleteConversation}
+        onClose={() => setSidebarOpen(false)}
       />
 
       <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden">
