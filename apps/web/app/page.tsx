@@ -230,6 +230,24 @@ export default function HomePage() {
     setMessages(prev => prev.map(m => m.isStreaming ? { ...m, isStreaming: false } : m));
   };
 
+  // ─── Delete a single message from the local list ────────────────────────────
+  const deleteMessage = (id: string) => {
+    setMessages(prev => prev.filter(m => m.id !== id));
+  };
+
+  // ─── Edit a user message → re-send from that point ──────────────────────────
+  const editMessage = (id: string, newContent: string) => {
+    if (isStreaming) return;
+    // Keep messages up to (but not including) the edited message, then re-send
+    const idx = messages.findIndex(m => m.id === id);
+    if (idx === -1) return;
+    const historyBefore = messages.slice(0, idx).map(m => ({ role: m.role, content: m.content }));
+    // Trim messages to before this one and re-send
+    setMessages(messages.slice(0, idx));
+    // Send the edited text (sendMessage will append it)
+    setTimeout(() => sendMessage(newContent), 0);
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden" style={{ background: 'var(--bg-base)' }}>
       <Sidebar
@@ -256,6 +274,8 @@ export default function HomePage() {
         <MessageList
           messages={messages}
           onRegenerate={regenerateLast}
+          onDeleteMessage={deleteMessage}
+          onEditMessage={editMessage}
           isStreaming={isStreaming}
         />
 

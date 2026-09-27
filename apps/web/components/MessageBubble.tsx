@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -14,12 +14,19 @@ interface Props {
   isLast: boolean;
   isStreaming: boolean;
   onRegenerate?: () => void;
+  onDelete?: (id: string) => void;
+  onEdit?: (id: string, newContent: string) => void;
 }
 
-export function MessageBubble({ message, isLast, isStreaming, onRegenerate }: Props) {
-  const [copied, setCopied]           = useState(false);
+export function MessageBubble({ message, isLast, isStreaming, onRegenerate, onDelete, onEdit }: Props) {
+  const [copied, setCopied]               = useState(false);
   const [reasoningOpen, setReasoningOpen] = useState(false);
-  const [isDark, setIsDark]           = useState(true);
+  const [isDark, setIsDark]               = useState(true);
+  const [isEditing, setIsEditing]         = useState(false);
+  const [editText, setEditText]           = useState(message.content);
+  const [hovered, setHovered]             = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const editRef = useRef<HTMLTextAreaElement>(null);
   const isAssistant = message.role === 'assistant';
 
   // Detect current theme
@@ -31,18 +38,53 @@ export function MessageBubble({ message, isLast, isStreaming, onRegenerate }: Pr
     return () => obs.disconnect();
   }, []);
 
+  // Auto-focus + auto-resize textarea when editing
+  useEffect(() => {
+    if (isEditing && editRef.current) {
+      editRef.current.focus();
+      editRef.current.style.height = 'auto';
+      editRef.current.style.height = editRef.current.scrollHeight + 'px';
+    }
+  }, [isEditing]);
+
   const copyMessage = () => {
     navigator.clipboard.writeText(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const showRegenerate = isAssistant && isLast && !isStreaming && onRegenerate;
+  const handleEditSubmit = () => {
+    const trimmed = editText.trim();
+    if (trimmed && trimmed !== message.content && onEdit) {
+      onEdit(message.id, trimmed);
+    }
+    setIsEditing(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEditSubmit(); }
+    if (e.key === 'Escape') { setEditText(message.content); setIsEditing(false); }
+  };
+
+  const handleDelete = () => {
+    if (confirmDelete) {
+      onDelete?.(message.id);
+      setConfirmDelete(false);
+    } else {
+      setConfirmDelete(true);
+      setTimeout(() => setConfirmDelete(false), 2500);
+    }
+  };
+
   const codeStyle = isDark ? oneDark : oneLight;
+  const showActions = hovered && !message.isStreaming && message.content;
 
   return (
-    <div className={`flex gap-3 max-w-3xl mx-auto w-full animate-slide-up ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}>
-
+    <div
+      className={`flex gap-3 max-w-3xl mx-auto w-full animate-slide-up ${isAssistant ? 'flex-row' : 'flex-row-reverse'}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); setConfirmDelete(false); }}
+    >
       {/* Avatar */}
       <div className="flex-shrink-0 mt-1">
         {isAssistant ? (
@@ -59,7 +101,7 @@ export function MessageBubble({ message, isLast, isStreaming, onRegenerate }: Pr
       </div>
 
       {/* Content */}
-      <div className={`flex-1 min-w-0 ${isAssistant ? '' : 'flex justify-end'}`}>
+      <div className={`flex-1 min-w-0 ${isAssistant ? '' : 'flex flex-col items-end'}`}>
 
         {/* Reasoning panel */}
         {isAssistant && message.reasoning && (
@@ -92,17 +134,44 @@ export function MessageBubble({ message, isLast, isStreaming, onRegenerate }: Pr
         )}
 
         {/* Main bubble */}
-        <div className={`relative group rounded-2xl px-4 py-3 ${
-          isAssistant
-            ? 'rounded-tl-sm'
-            : 'rounded-tr-sm max-w-[80%]'
+        <div className={`relative rounded-2xl px-4 py-3 ${
+          isAssistant ? 'rounded-tl-sm w-full' : 'rounded-tr-sm max-w-[80%]'
         }`}
           style={isAssistant
             ? { background: 'var(--bg-surface-1)', border: '1px solid var(--border)', color: 'var(--text-primary)' }
             : { background: 'var(--user-bubble)', color: 'white' }
           }
         >
-          {isAssistant ? (
+          {/* Edit mode */}
+          {isEditing ? (
+            <div className="flex flex-col gap-2">
+              <textarea
+                ref={editRef}
+                value={editText}
+                onChange={e => { setEditText(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                onKeyDown={handleEditKeyDown}
+                className="w-full bg-transparent resize-none outline-none text-sm leading-relaxed"
+                style={{ color: 'white', minHeight: '2rem' }}
+                rows={1}
+              />
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => { setEditText(message.content); setIsEditing(false); }}
+                  className="text-xs px-3 py-1 rounded-lg transition-all"
+                  style={{ background: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.8)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditSubmit}
+                  className="text-xs px-3 py-1 rounded-lg font-medium transition-all"
+                  style={{ background: 'rgba(255,255,255,0.9)', color: 'var(--user-bubble)' }}
+                >
+                  Send
+                </button>
+              </div>
+            </div>
+          ) : isAssistant ? (
             <div className="nova-prose text-sm leading-relaxed">
               {message.content ? (
                 <ReactMarkdown
@@ -136,7 +205,6 @@ export function MessageBubble({ message, isLast, isStreaming, onRegenerate }: Pr
                       }
                       return <code className={className} {...props}>{children}</code>;
                     },
-                    // Open links in new tab
                     a({ href, children, ...props }: any) {
                       return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>;
                     },
@@ -147,53 +215,70 @@ export function MessageBubble({ message, isLast, isStreaming, onRegenerate }: Pr
               ) : message.isStreaming ? null : (
                 <span style={{ color: 'var(--text-muted)' }}>…</span>
               )}
-              {message.isStreaming && (
-                <span className="typing-cursor" />
-              )}
+              {message.isStreaming && <span className="typing-cursor" />}
             </div>
           ) : (
             <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
           )}
-
-          {/* Copy button (appears on hover for assistant, always for user) */}
-          {!message.isStreaming && message.content && (
-            <button
-              onClick={copyMessage}
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded-lg text-xs"
-              style={{
-                background: 'var(--bg-surface-2)',
-                border: '1px solid var(--border)',
-                color: copied ? '#4ade80' : 'var(--text-muted)',
-              }}
-              title={copied ? 'Copied!' : 'Copy message'}
-            >
-              {copied ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-              ) : (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              )}
-            </button>
-          )}
         </div>
 
-        {/* Regenerate button */}
-        {showRegenerate && (
-          <div className="flex items-center gap-2 mt-2">
-            <button
-              onClick={onRegenerate}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all"
-              style={{
-                color: 'var(--text-muted)',
-                border: '1px solid var(--border)',
-                background: 'var(--bg-surface-1)',
-              }}
+        {/* ── Action toolbar (Claude-style, appears below message on hover) ─── */}
+        {showActions && !isEditing && (
+          <div
+            className="flex items-center gap-1 mt-1.5 animate-fade-in"
+            style={{ justifyContent: isAssistant ? 'flex-start' : 'flex-end' }}
+          >
+            {/* Copy */}
+            <ActionBtn
+              onClick={copyMessage}
+              title={copied ? 'Copied!' : 'Copy'}
+              active={copied}
+              activeColor="#4ade80"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <polyline points="1 4 1 10 7 10"/>
-                <path d="M3.51 15a9 9 0 1 0 .49-3.71"/>
-              </svg>
-              Regenerate
-            </button>
+              {copied ? (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              )}
+            </ActionBtn>
+
+            {/* Edit (user messages only) */}
+            {!isAssistant && onEdit && (
+              <ActionBtn onClick={() => setIsEditing(true)} title="Edit message">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </ActionBtn>
+            )}
+
+            {/* Regenerate (last assistant only) */}
+            {isAssistant && isLast && onRegenerate && (
+              <ActionBtn onClick={onRegenerate} title="Regenerate">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <polyline points="1 4 1 10 7 10"/>
+                  <path d="M3.51 15a9 9 0 1 0 .49-3.71"/>
+                </svg>
+              </ActionBtn>
+            )}
+
+            {/* Delete */}
+            {onDelete && (
+              <ActionBtn
+                onClick={handleDelete}
+                title={confirmDelete ? 'Click again to confirm' : 'Delete message'}
+                active={confirmDelete}
+                activeColor="#f87171"
+              >
+                {confirmDelete ? (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                ) : (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                )}
+              </ActionBtn>
+            )}
           </div>
         )}
       </div>
@@ -201,6 +286,39 @@ export function MessageBubble({ message, isLast, isStreaming, onRegenerate }: Pr
   );
 }
 
+// ── Small icon action button ──────────────────────────────────────────────────
+function ActionBtn({
+  children, onClick, title, active, activeColor,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  title: string;
+  active?: boolean;
+  activeColor?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className="flex items-center justify-center w-7 h-7 rounded-lg transition-all"
+      style={{
+        background: active ? `${activeColor}22` : 'var(--bg-surface-2)',
+        border: '1px solid var(--border)',
+        color: active ? activeColor : 'var(--text-muted)',
+      }}
+      onMouseEnter={e => {
+        if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
+      }}
+      onMouseLeave={e => {
+        if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--text-muted)';
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Copy code button inside code blocks ──────────────────────────────────────
 function CopyCodeButton({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);
   return (

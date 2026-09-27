@@ -15,10 +15,12 @@ const SUGGESTIONS = [
 interface Props {
   messages: Message[];
   onRegenerate: () => void;
+  onDeleteMessage: (id: string) => void;
+  onEditMessage: (id: string, newContent: string) => void;
   isStreaming: boolean;
 }
 
-export function MessageList({ messages, onRegenerate, isStreaming }: Props) {
+export function MessageList({ messages, onRegenerate, onDeleteMessage, onEditMessage, isStreaming }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
@@ -108,6 +110,8 @@ export function MessageList({ messages, onRegenerate, isStreaming }: Props) {
             isLast={i === messages.length - 1}
             isStreaming={isStreaming}
             onRegenerate={onRegenerate}
+            onDelete={onDeleteMessage}
+            onEdit={onEditMessage}
           />
         ))}
         <div ref={bottomRef} className="h-4" />
