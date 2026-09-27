@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # Build artifacts
 *.tsbuildinfo
+android/app/build/
+apps/mobile/android/
+apps/mobile/node_modules/

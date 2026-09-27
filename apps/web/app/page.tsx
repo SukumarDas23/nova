@@ -258,6 +258,7 @@ export default function HomePage() {
         onNew={newChat}
         onDelete={deleteConversation}
         onClose={() => setSidebarOpen(false)}
+        onToggle={() => setSidebarOpen(o => !o)}
       />
 
       <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden">
